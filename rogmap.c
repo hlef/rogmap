@@ -22,7 +22,7 @@ int main() {
     map_t *map = malloc(sizeof(map_t));
     *map = (map_t) { .elements = malloc(height*width*sizeof(char)), .height=height, .width=width };
 
-    fill_map(map, 10);
+    fill_map(map, 5);
 
     // Display map
     for ( int i = 0; i < height*width; i++ ) {
@@ -189,9 +189,34 @@ void generate_rectangular_room(map_t* map, listing_t* selectable_space, listing_
     room_buffer->size = i;
 }
 
-void generate_elliptic_room(map_t* map, listing_t* selectable_space, listing_t* room_buffer){
-    generate_rectangular_room(map, selectable_space, room_buffer);
-    // TODO
+/* Generate an elliptic room in passed map, with at least one point in passed
+   selectable_space array. Write the coordinates of the generated room's points
+   to passed room_buffer */
+void generate_elliptic_room(map_t* map, listing_t* selectable_space, listing_t* room_buffer) {
+    coordinate initial_point;
+
+    do {
+        initial_point = selectable_space->coordinates[rand() % selectable_space->size];
+    } while ( (initial_point.y <= 2) || (map->height - initial_point.y <= 2) ||
+               (map->width - initial_point.x <= 2) || (initial_point.x <= 2) );
+
+    int height = randrange(MIN(map->height - initial_point.y, initial_point.y), 2);
+    int width = randrange(MIN(map->width - initial_point.x, initial_point.x), 2);
+
+    int squarew = width*width;
+    int squareh = height*height;
+
+    int i = 0;
+    for ( int y = -height; y <= height; y++ ) {
+        for ( int x = -width; x <= width; x++ ) {
+            if ( (x * x * squareh + (y * y) * squarew) <= (squareh * squarew) ) {
+                room_buffer->coordinates[i] = (coordinate) { .x = initial_point.x + x, .y = initial_point.y + y };
+                i++;
+            }
+        }
+    }
+
+    room_buffer->size = i;
 }
 
 /* Return a randomly-chosen element from the rooms_generators array */
