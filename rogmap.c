@@ -17,15 +17,17 @@
 int main() {
     srand((unsigned) time(NULL));
 
+    int width = 80, height = 40;
+
     map_t *map = malloc(sizeof(map_t));
-    *map = (map_t) { .elements = malloc(50*100*sizeof(char)), .height=50, .width=100 };
+    *map = (map_t) { .elements = malloc(height*width*sizeof(char)), .height=height, .width=width };
 
     fill_map(map, 10);
 
     // Display map
-    for ( int i = 0; i < 100*50; i++ ) {
+    for ( int i = 0; i < height*width; i++ ) {
         printf("%c", map->elements[i]);
-        if ( (i+1) % 100 == 0 ) {
+        if ( (i+1) % width == 0 ) {
             printf("\n");
         }
     }
