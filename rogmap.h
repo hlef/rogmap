@@ -1,8 +1,3 @@
-#ifndef GENCONSTANTS
-// We assume that MAX_ROOM_SIZE_FACTOR <= 1
-#define MAX_ROOM_SIZE_FACTOR 1/2
-#endif
-
 #ifndef MAPCHARACTERS
 #define CHAR_ROOM '#'
 #define CHAR_EMPTY '.'
@@ -32,11 +27,11 @@ int is_suitable_initial_point(map_t* map, coordinate initial_point, int dir_righ
 
 int randrange(int max, int min);
 
-void (*get_room_generator()) (map_t*, listing_t*, listing_t*);
+void (*get_room_generator()) (map_t*, listing_t*, listing_t*, float);
 
-void generate_rectangular_room(map_t* map, listing_t* available_space, listing_t* room_buffer);
+void generate_rectangular_room(map_t* map, listing_t* available_space, listing_t* room_buffer, float max_room_size_factor);
 
-void generate_elliptic_room(map_t* map, listing_t* available_space, listing_t* room_buffer);
+void generate_elliptic_room(map_t* map, listing_t* available_space, listing_t* room_buffer, float max_room_size_factor);
 
 // Available room generators
-void (*rooms_generators[]) (map_t*, listing_t*, listing_t*) = { generate_rectangular_room, generate_elliptic_room};
+void (*rooms_generators[]) (map_t*, listing_t*, listing_t*, float) = { generate_rectangular_room, generate_elliptic_room};
