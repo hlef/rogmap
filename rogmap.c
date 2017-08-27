@@ -96,7 +96,7 @@ int fill_map(map_t* map, map_type_t map_type) {
             room_number = randrange(20, 6);
             break;
         case BIGROOMS:
-            room_number = randrange(10, 3);
+            room_number = randrange(10, 5);
             break;
         case BOSS:
             room_number = 1;
@@ -116,7 +116,7 @@ int fill_map(map_t* map, map_type_t map_type) {
                 generate_elliptic_room(map, selectable_space, room_buffer, 0.6f);
                 break;
             default:
-                generate_rectangular_room(map, selectable_space, room_buffer, map_type == BIGROOMS ? 0.6f : 0.3f);
+                generate_rectangular_room(map, selectable_space, room_buffer, map_type == BIGROOMS ? 0.8f : 0.3f);
         }
 
         insert_room(map, room_buffer);
