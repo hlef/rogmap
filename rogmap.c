@@ -22,7 +22,7 @@ int main() {
     map_t *map = malloc(sizeof(map_t));
     *map = (map_t) { .elements = malloc(height*width*sizeof(char)), .height=height, .width=width };
 
-    fill_map(map, 5);
+    fill_map(map, RANDOM);
 
     // Display map
     for ( int i = 0; i < height*width; i++ ) {
@@ -37,7 +37,7 @@ int main() {
     return 1;
 }
 
-int fill_map(map_t* map, int density) {
+int fill_map(map_t* map, map_type_t map_type) {
     // Allocate memory
     int map_size = map->width * map->height;
 
@@ -86,12 +86,52 @@ int fill_map(map_t* map, int density) {
     // Initialize map
     memset(map->elements, CHAR_EMPTY, map_size * sizeof(char));
 
+    int density;
+    switch(map_type) {
+    case RANDOM:
+        density = randrange(15, 6);
+        break;
+    case SMALLROOMS:
+        density = randrange(20, 6);
+        break;
+    case BIGROOMS:
+        density = randrange(10, 3);
+        break;
+    case BOSS:
+        density = 1;
+        break;
+    default:
+        return -1;
+    }
+
     // Generation loop
     int i = 0;
     do {
-        void (*room_generator)(map_t*, listing_t*, listing_t*) = get_room_generator();
-        room_generator(map, selectable_space, room_buffer);
-        insert_room(map, room_buffer);
+        void (*room_generator)(map_t*, listing_t*, listing_t*);
+        switch(map_type) {
+            case RANDOM:
+                room_generator = get_room_generator();
+                room_generator(map, selectable_space, room_buffer);
+                insert_room(map, room_buffer);
+                break;
+            case SMALLROOMS:
+                room_generator = get_room_generator();
+                room_generator(map, selectable_space, room_buffer);
+                insert_room(map, room_buffer);
+                break;
+            case BIGROOMS:
+                room_generator = get_room_generator();
+                room_generator(map, selectable_space, room_buffer);
+                insert_room(map, room_buffer);
+                break;
+            case BOSS:
+                room_generator = get_room_generator();
+                room_generator(map, selectable_space, room_buffer);
+                insert_room(map, room_buffer);
+                break;
+            default:
+                return -1;
+        }
         memcpy(selectable_space->coordinates, room_buffer->coordinates, room_buffer->size * sizeof(coordinate));
         selectable_space->size = room_buffer->size;
         i++;
