@@ -86,56 +86,44 @@ int fill_map(map_t* map, map_type_t map_type) {
     // Initialize map
     memset(map->elements, CHAR_EMPTY, map_size * sizeof(char));
 
-    int density;
-    switch(map_type) {
-    case RANDOM:
-        density = randrange(15, 6);
-        break;
-    case SMALLROOMS:
-        density = randrange(20, 6);
-        break;
-    case BIGROOMS:
-        density = randrange(10, 3);
-        break;
-    case BOSS:
-        density = 1;
-        break;
-    default:
-        return -1;
+    // Define room_number
+    int room_number;
+    switch (map_type) {
+        case RANDOM:
+            room_number = randrange(15, 6);
+            break;
+        case SMALLROOMS:
+            room_number = randrange(20, 6);
+            break;
+        case BIGROOMS:
+            room_number = randrange(10, 3);
+            break;
+        case BOSS:
+            room_number = 1;
+            break;
+        default:
+            return -1;
     }
 
     // Generation loop
     int i = 0;
     do {
-        void (*room_generator)(map_t*, listing_t*, listing_t*, float);
-        switch(map_type) {
+        switch (map_type) {
             case RANDOM:
-                room_generator = get_room_generator();
-                room_generator(map, selectable_space, room_buffer, 0.5f);
-                insert_room(map, room_buffer);
-                break;
-            case SMALLROOMS:
-                room_generator = get_room_generator();
-                room_generator(map, selectable_space, room_buffer, 0.5f);
-                insert_room(map, room_buffer);
-                break;
-            case BIGROOMS:
-                room_generator = get_room_generator();
-                room_generator(map, selectable_space, room_buffer, 0.5f);
-                insert_room(map, room_buffer);
+                get_room_generator()(map, selectable_space, room_buffer, 0.5f);
                 break;
             case BOSS:
-                room_generator = get_room_generator();
-                room_generator(map, selectable_space, room_buffer, 0.5f);
-                insert_room(map, room_buffer);
+                generate_elliptic_room(map, selectable_space, room_buffer, 0.6f);
                 break;
             default:
-                return -1;
+                generate_rectangular_room(map, selectable_space, room_buffer, map_type == BIGROOMS ? 0.6f : 0.3f);
         }
+
+        insert_room(map, room_buffer);
         memcpy(selectable_space->coordinates, room_buffer->coordinates, room_buffer->size * sizeof(coordinate));
         selectable_space->size = room_buffer->size;
         i++;
-    } while (i < density);
+    } while (i < room_number);
 
     free(selectable_space->coordinates);
     free(selectable_space);
@@ -201,13 +189,13 @@ void generate_rectangular_room(map_t* map, listing_t* selectable_space, listing_
 
     int width, height;
 
-    if(dir_up) {
+    if (dir_up) {
         height = randrange(MIN(map->height * max_room_size_factor, initial_point.y), 2);
     } else {
         height = randrange(MIN(map->height * max_room_size_factor, map->height - initial_point.y), 2);
     }
 
-    if(dir_right) {
+    if (dir_right) {
         width = randrange(MIN(map->width * max_room_size_factor, map->width - initial_point.x), 2);
     } else {
         width = randrange(MIN(map->width * max_room_size_factor, initial_point.x), 2);
