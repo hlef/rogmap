@@ -1,2 +1,2 @@
 all:
-	gcc rogmap.c -o rogmap -O0 -g
+	gcc main.c -o rogmap -O0 -g

@@ -1,8 +1,6 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
 #include "rogmap.h"
+#include <stdlib.h>
+#include <string.h>
 
 #define ARR_SIZE(arr) (sizeof((arr)) / sizeof((arr[0])) )
 
@@ -13,29 +11,6 @@
   ({ __typeof__ (a) _a = (a); \
       __typeof__ (b) _b = (b); \
     _a < _b ? _a : _b; })
-
-int main() {
-    srand((unsigned) time(NULL));
-
-    int width = 80, height = 40;
-
-    map_t *map = malloc(sizeof(map_t));
-    *map = (map_t) { .elements = malloc(height*width*sizeof(char)), .height=height, .width=width };
-
-    fill_map(map, 0.4f, 0.1f);
-
-    // Display map
-    for ( int i = 0; i < height*width; i++ ) {
-        printf("%c", map->elements[i]);
-        if ( (i+1) % width == 0 ) {
-            printf("\n");
-        }
-    }
-
-    free(map->elements);
-    free(map);
-    return 1;
-}
 
 int fill_map(map_t* map, float min_filling, float max_room_size) {
     if (min_filling >= 1 || min_filling <= 0 || max_room_size > 1 || max_room_size <= 0) {
@@ -160,11 +135,8 @@ int randrange(int max, int min) {
 void generate_rectangular_room(map_t* map, listing_t* selectable_space, listing_t* room_buffer, float max_room_size_factor) {
     coordinate initial_point;
 
-    // 1 for right, 0 for left
-    int dir_right;
-
-    // 1 for up, 0 for down
-    int dir_up;
+    // dir_right = 1 => build in right direction, dir_up = 1 => build in top direction
+    int dir_right, dir_up;
 
     do {
         dir_right = randrange(2, 0);
