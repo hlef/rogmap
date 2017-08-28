@@ -17,11 +17,9 @@ typedef struct {
   coordinate* coordinates;
 } listing_t;
 
-typedef enum {RANDOM, SMALLROOMS, BIGROOMS, BOSS} map_type_t;
+int fill_map(map_t* map_buffer, float min_filling, float max_room_size);
 
-int fill_map(map_t* map_buffer, map_type_t map_type);
-
-void insert_room(map_t* map, listing_t* room);
+int insert_room(map_t* map, listing_t* room);
 
 int is_suitable_initial_point(map_t* map, coordinate initial_point, int dir_right, int dir_up);
 

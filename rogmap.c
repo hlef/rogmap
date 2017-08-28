@@ -22,7 +22,7 @@ int main() {
     map_t *map = malloc(sizeof(map_t));
     *map = (map_t) { .elements = malloc(height*width*sizeof(char)), .height=height, .width=width };
 
-    fill_map(map, RANDOM);
+    fill_map(map, 0.4f, 0.1f);
 
     // Display map
     for ( int i = 0; i < height*width; i++ ) {
@@ -37,7 +37,11 @@ int main() {
     return 1;
 }
 
-int fill_map(map_t* map, map_type_t map_type) {
+int fill_map(map_t* map, float min_filling, float max_room_size) {
+    if (min_filling >= 1 || min_filling <= 0 || max_room_size > 1 || max_room_size <= 0) {
+        return -1;
+    }
+
     // Allocate memory
     int map_size = map->width * map->height;
 
@@ -86,44 +90,14 @@ int fill_map(map_t* map, map_type_t map_type) {
     // Initialize map
     memset(map->elements, CHAR_EMPTY, map_size * sizeof(char));
 
-    // Define room_number
-    int room_number;
-    switch (map_type) {
-        case RANDOM:
-            room_number = randrange(15, 6);
-            break;
-        case SMALLROOMS:
-            room_number = randrange(20, 6);
-            break;
-        case BIGROOMS:
-            room_number = randrange(10, 5);
-            break;
-        case BOSS:
-            room_number = 1;
-            break;
-        default:
-            return -1;
-    }
-
     // Generation loop
     int i = 0;
     do {
-        switch (map_type) {
-            case RANDOM:
-                get_room_generator()(map, selectable_space, room_buffer, 0.5f);
-                break;
-            case BOSS:
-                generate_elliptic_room(map, selectable_space, room_buffer, 0.6f);
-                break;
-            default:
-                generate_rectangular_room(map, selectable_space, room_buffer, map_type == BIGROOMS ? 0.8f : 0.3f);
-        }
-
-        insert_room(map, room_buffer);
+        get_room_generator()(map, selectable_space, room_buffer, max_room_size);
+        i += insert_room(map, room_buffer);
         memcpy(selectable_space->coordinates, room_buffer->coordinates, room_buffer->size * sizeof(coordinate));
         selectable_space->size = room_buffer->size;
-        i++;
-    } while (i < room_number);
+    } while (i < map_size * min_filling);
 
     free(selectable_space->coordinates);
     free(selectable_space);
@@ -132,10 +106,15 @@ int fill_map(map_t* map, map_type_t map_type) {
     return 0;
 }
 
-void insert_room(map_t* map, listing_t* room) {
+int insert_room(map_t* map, listing_t* room) {
+    int inserted = 0;
     for ( int i = 0; i < room->size; i++ ) {
-        ACCESS_XY_IN_ARRAY(map, room->coordinates[i].x, room->coordinates[i].y) = CHAR_ROOM;
+        if (ACCESS_XY_IN_ARRAY(map, room->coordinates[i].x, room->coordinates[i].y) != CHAR_ROOM) {
+            ACCESS_XY_IN_ARRAY(map, room->coordinates[i].x, room->coordinates[i].y) = CHAR_ROOM;
+            inserted++;
+        }
     }
+    return inserted;
 }
 
 int is_suitable_initial_point(map_t* map, coordinate initial_point, int dir_right, int dir_up) {
@@ -154,9 +133,13 @@ int is_suitable_initial_point(map_t* map, coordinate initial_point, int dir_righ
     }
 }
 
-/* Return pseudo random number in range [min, max).
-   Assumes min < max <= RAND_MAX */
+/* Return pseudo random number in range [min, max). If min == max, return max.
+   Assumes min <= max <= RAND_MAX */
 int randrange(int max, int min) {
+    if (max == min) {
+        return max;
+    }
+
     max -= (min + 1);
 
     unsigned int num_bins = (unsigned int) max + 1,
@@ -178,12 +161,14 @@ void generate_rectangular_room(map_t* map, listing_t* selectable_space, listing_
     coordinate initial_point;
 
     // 1 for right, 0 for left
-    int dir_right = randrange(2, 0);
+    int dir_right;
 
     // 1 for up, 0 for down
-    int dir_up = randrange(2, 0);
+    int dir_up;
 
     do {
+        dir_right = randrange(2, 0);
+        dir_up = randrange(2, 0);
         initial_point = selectable_space->coordinates[rand() % selectable_space->size];
     } while ( !is_suitable_initial_point(map, initial_point, dir_right, dir_up) );
 
@@ -225,17 +210,17 @@ void generate_elliptic_room(map_t* map, listing_t* selectable_space, listing_t* 
 
     do {
         initial_point = selectable_space->coordinates[rand() % selectable_space->size];
-    } while ( (initial_point.y <= 2) || (map->height - initial_point.y <= 2) ||
-               (map->width - initial_point.x <= 2) || (initial_point.x <= 2) );
+    } while ( (initial_point.y < 1) || ((map->height - initial_point.y) <= 1) ||
+               ((map->width - initial_point.x) <= 1) || (initial_point.x < 1) );
 
     int max_height = MIN(map->height - initial_point.y, initial_point.y);
-    max_height = MIN(max_height, map->height * max_room_size_factor);
+    max_height = MIN(max_height, map->height * max_room_size_factor * 0.5f);
 
     int max_width = MIN(map->width - initial_point.x, initial_point.x);
-    max_width = MIN(max_width, map->width * max_room_size_factor);
+    max_width = MIN(max_width, map->width * max_room_size_factor * 0.5f);
 
-    int height = randrange(max_height, 2);
-    int width = randrange(max_width, 2);
+    int height = randrange(max_height, 1);
+    int width = randrange(max_width, 1);
 
     int squarew = width*width;
     int squareh = height*height;
