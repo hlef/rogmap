@@ -1,7 +1,8 @@
-#ifndef MAPCHARACTERS
+#ifndef ROGMAP_H
+
+#define ROGMAP_H
 #define CHAR_ROOM '#'
 #define CHAR_EMPTY '.'
-#endif
 
 typedef struct {
   int x, y;
@@ -31,5 +32,4 @@ void generate_rectangular_room(map_t* map, listing_t* available_space, listing_t
 
 void generate_elliptic_room(map_t* map, listing_t* available_space, listing_t* room_buffer, float max_room_size_factor);
 
-// Available room generators
-void (*rooms_generators[]) (map_t*, listing_t*, listing_t*, float) = { generate_rectangular_room, generate_elliptic_room};
+#endif

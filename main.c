@@ -1,6 +1,9 @@
-#include "rogmap.c"
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <stdio.h>
+
+#include "rogmap.h"
 
 int main() {
     srand((unsigned) time(NULL));

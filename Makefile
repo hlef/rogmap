@@ -1,2 +1,5 @@
+CC = gcc
+DEBUG = -O0 -g
+
 all:
-	gcc main.c -o rogmap -O0 -g
+	$(CC) main.c rogmap.c -o rogmap $(DEBUG)
