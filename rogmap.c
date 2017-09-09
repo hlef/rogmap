@@ -13,7 +13,11 @@
     _a < _b ? _a : _b; })
 
 int fill_map(map_t* map, float min_filling, float max_room_size) {
-    if (min_filling >= 1 || min_filling <= 0 || max_room_size > 1 || max_room_size <= 0) {
+    if (min_filling >= 1 ||
+            min_filling <= 0 ||
+            max_room_size > 1 ||
+            (int)(max_room_size * map->height) < 2 ||
+            (int)(max_room_size * map->width) < 2) {
         return -1;
     }
 

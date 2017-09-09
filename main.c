@@ -10,7 +10,10 @@ int main() {
     map_t *map = malloc(sizeof(map_t));
     *map = (map_t) { .elements = malloc(height*width*sizeof(char)), .height=height, .width=width };
 
-    fill_map(map, 0.4f, 0.1f);
+    if (fill_map(map, 0.4f, 0.05f)) {
+        printf("Map generation failed with non zero error code\n");
+        return 1;
+    }
 
     // Display map
     for ( int i = 0; i < height*width; i++ ) {
@@ -22,5 +25,5 @@ int main() {
 
     free(map->elements);
     free(map);
-    return 1;
+    return 0;
 }
