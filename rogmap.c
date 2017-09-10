@@ -3,16 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ARR_SIZE(arr) (sizeof((arr)) / sizeof((arr[0])) )
-
-// Simulate map[x][y] for a 1-dimensional array
-#define ACCESS_XY_IN_ARRAY(map, x, y) map->elements[y*map->width + x]
-
-#define MIN(a,b) \
-  ({ __typeof__ (a) _a = (a); \
-      __typeof__ (b) _b = (b); \
-    _a < _b ? _a : _b; })
-
 // Available room generators
 void (*rooms_generators[]) (map_t*, listing_t*, listing_t*, float) = { generate_rectangular_room, generate_elliptic_room };
 
