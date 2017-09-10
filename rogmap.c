@@ -18,21 +18,20 @@ int fill_map(map_t* map, float min_filling, float max_room_size) {
     // Allocate memory
     int map_size = map->width * map->height;
 
-    listing_t* selectable_space = malloc(sizeof(listing_t));
+    listing_t* selectable_space = (listing_t*) malloc(sizeof(listing_t));
 
     if ( !selectable_space ) {
         return -1;
     }
 
-    *selectable_space = (listing_t) { .coordinates = malloc(map_size * sizeof(coordinate)),
-                                      .size = map_size };
+    *selectable_space = (listing_t) { .size = map_size, .coordinates = (coordinate*) malloc(map_size * sizeof(coordinate)) };
 
     if ( !selectable_space->coordinates ) {
         free(selectable_space);
         return -1;
     }
 
-    listing_t* room_buffer = malloc(sizeof(listing_t));
+    listing_t* room_buffer = (listing_t*) malloc(sizeof(listing_t));
 
     if ( !room_buffer ) {
         free(selectable_space->coordinates);
@@ -40,8 +39,7 @@ int fill_map(map_t* map, float min_filling, float max_room_size) {
         return -1;
     }
 
-    *room_buffer = (listing_t) { .coordinates = calloc(map_size, sizeof(coordinate)),
-                                 .size = map_size };
+    *room_buffer = (listing_t) { .size = map_size, .coordinates = (coordinate*) calloc(map_size, sizeof(coordinate)) };
 
     if ( !room_buffer->coordinates ) {
         free(selectable_space->coordinates);
