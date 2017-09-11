@@ -17,6 +17,7 @@ int fill_map(map_t* map, float min_filling, float max_room_size) {
 
     // Allocate memory
     int map_size = map->width * map->height;
+    int buffer_size = map_size * max_room_size;
 
     listing_t* generation_buffer = (listing_t*) malloc(sizeof(listing_t));
 
@@ -24,22 +25,15 @@ int fill_map(map_t* map, float min_filling, float max_room_size) {
         return -1;
     }
 
-    *generation_buffer = (listing_t) { .size = map_size, .coordinates = (coordinate*) malloc(map_size * sizeof(coordinate)) };
+    *generation_buffer = (listing_t) { .size = 1, .coordinates = (coordinate*) malloc(buffer_size * sizeof(coordinate)) };
 
     if ( !generation_buffer->coordinates ) {
         free(generation_buffer);
         return -1;
     }
 
-    // Initialize generation_buffer
-    for ( int i = 0, y = 0; y < map->height; y++ ) {
-        for ( int x = 0; x < map->width; x++ ) {
-            if( x < map->width && y < map->height ) {
-                generation_buffer->coordinates[i] = (coordinate) { .x = x, .y = y };
-                i++;
-            }
-        }
-    }
+    // Initialize generation_buffer a coordinate in the map, at random.
+    generation_buffer->coordinates[0] = (coordinate) { .x = randrange(map->width - 1, 1), .y = randrange(map->height - 1, 1)};
 
     // Initialize map
     memset(map->elements, CHAR_EMPTY, map_size * sizeof(char));
