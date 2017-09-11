@@ -36,10 +36,10 @@ int is_suitable_initial_point(map_t* map, coordinate initial_point, int dir_righ
 
 int randrange(int max, int min);
 
-void (*get_room_generator()) (map_t*, listing_t*, listing_t*, float);
+void (*get_room_generator()) (map_t*, listing_t*, float);
 
-void generate_rectangular_room(map_t* map, listing_t* available_space, listing_t* room_buffer, float max_room_size_factor);
+void generate_rectangular_room(map_t* map, listing_t* available_space, float max_room_size_factor);
 
-void generate_elliptic_room(map_t* map, listing_t* available_space, listing_t* room_buffer, float max_room_size_factor);
+void generate_elliptic_room(map_t* map, listing_t* available_space, float max_room_size_factor);
 
 #endif

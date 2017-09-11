@@ -4,7 +4,7 @@
 #include <string.h>
 
 // Available room generators
-void (*rooms_generators[]) (map_t*, listing_t*, listing_t*, float) = { generate_rectangular_room, generate_elliptic_room };
+void (*rooms_generators[]) (map_t*, listing_t*, float) = { generate_rectangular_room, generate_elliptic_room };
 
 int fill_map(map_t* map, float min_filling, float max_room_size) {
     if (min_filling >= 1 ||
@@ -18,41 +18,24 @@ int fill_map(map_t* map, float min_filling, float max_room_size) {
     // Allocate memory
     int map_size = map->width * map->height;
 
-    listing_t* selectable_space = (listing_t*) malloc(sizeof(listing_t));
+    listing_t* generation_buffer = (listing_t*) malloc(sizeof(listing_t));
 
-    if ( !selectable_space ) {
+    if ( !generation_buffer ) {
         return -1;
     }
 
-    *selectable_space = (listing_t) { .size = map_size, .coordinates = (coordinate*) malloc(map_size * sizeof(coordinate)) };
+    *generation_buffer = (listing_t) { .size = map_size, .coordinates = (coordinate*) malloc(map_size * sizeof(coordinate)) };
 
-    if ( !selectable_space->coordinates ) {
-        free(selectable_space);
+    if ( !generation_buffer->coordinates ) {
+        free(generation_buffer);
         return -1;
     }
 
-    listing_t* room_buffer = (listing_t*) malloc(sizeof(listing_t));
-
-    if ( !room_buffer ) {
-        free(selectable_space->coordinates);
-        free(selectable_space);
-        return -1;
-    }
-
-    *room_buffer = (listing_t) { .size = map_size, .coordinates = (coordinate*) calloc(map_size, sizeof(coordinate)) };
-
-    if ( !room_buffer->coordinates ) {
-        free(selectable_space->coordinates);
-        free(selectable_space);
-        free(room_buffer);
-        return -1;
-    }
-
-    // Initialize selectable_space
+    // Initialize generation_buffer
     for ( int i = 0, y = 0; y < map->height; y++ ) {
         for ( int x = 0; x < map->width; x++ ) {
             if( x < map->width && y < map->height ) {
-                selectable_space->coordinates[i] = (coordinate) { .x = x, .y = y };
+                generation_buffer->coordinates[i] = (coordinate) { .x = x, .y = y };
                 i++;
             }
         }
@@ -64,16 +47,12 @@ int fill_map(map_t* map, float min_filling, float max_room_size) {
     // Generation loop
     int i = 0;
     do {
-        get_room_generator()(map, selectable_space, room_buffer, max_room_size);
-        i += insert_room(map, room_buffer);
-        memcpy(selectable_space->coordinates, room_buffer->coordinates, room_buffer->size * sizeof(coordinate));
-        selectable_space->size = room_buffer->size;
+        get_room_generator()(map, generation_buffer, max_room_size);
+        i += insert_room(map, generation_buffer);
     } while (i < map_size * min_filling);
 
-    free(selectable_space->coordinates);
-    free(selectable_space);
-    free(room_buffer->coordinates);
-    free(room_buffer);
+    free(generation_buffer->coordinates);
+    free(generation_buffer);
     return 0;
 }
 
@@ -125,10 +104,10 @@ int randrange(int max, int min) {
     return (x / bin_size) + min;
 }
 
-/* Generate a rectangular room in passed map, with at least one point in passed
-   selectable_space array. Write the coordinates of the generated room's points
-   to passed room_buffer */
-void generate_rectangular_room(map_t* map, listing_t* selectable_space, listing_t* room_buffer, float max_room_size_factor) {
+/* Generate a rectangular room in passed map with at least one point in passed
+   generation_buffer array. Write the coordinates constituing the generated
+   room in generation_buffer. */
+void generate_rectangular_room(map_t* map, listing_t* generation_buffer, float max_room_size_factor) {
     coordinate initial_point;
 
     // dir_right = 1 => build in right direction, dir_up = 1 => build in top direction
@@ -137,7 +116,7 @@ void generate_rectangular_room(map_t* map, listing_t* selectable_space, listing_
     do {
         dir_right = randrange(2, 0);
         dir_up = randrange(2, 0);
-        initial_point = selectable_space->coordinates[rand() % selectable_space->size];
+        initial_point = generation_buffer->coordinates[rand() % generation_buffer->size];
     } while ( !is_suitable_initial_point(map, initial_point, dir_right, dir_up) );
 
     int width, height;
@@ -154,12 +133,14 @@ void generate_rectangular_room(map_t* map, listing_t* selectable_space, listing_
         width = randrange(MIN(map->width * max_room_size_factor, initial_point.x), 2);
     }
 
+    memset(generation_buffer->coordinates, 0, generation_buffer->size * sizeof(coordinate));
+
     int x, y = initial_point.y, i = 0;
     for ( int h = 0; h < height; h++ ) {
         x = initial_point.x;
 
         for ( int w = 0; w < width; w++ ) {
-            room_buffer->coordinates[i] = (coordinate) { .x = x, .y = y };
+            generation_buffer->coordinates[i] = (coordinate) { .x = x, .y = y };
             dir_right ? x++ : x--;
             i++;
         }
@@ -167,17 +148,17 @@ void generate_rectangular_room(map_t* map, listing_t* selectable_space, listing_
         dir_up ? y-- : y++;
     }
 
-    room_buffer->size = i;
+    generation_buffer->size = i;
 }
 
-/* Generate an elliptic room in passed map, with at least one point in passed
-   selectable_space array. Write the coordinates of the generated room's points
-   to passed room_buffer */
-void generate_elliptic_room(map_t* map, listing_t* selectable_space, listing_t* room_buffer, float max_room_size_factor) {
+/* Generate a elliptic room in passed map with at least one point in passed
+   generation_buffer array. Write the coordinates constituing the generated
+   room in generation_buffer. */
+void generate_elliptic_room(map_t* map, listing_t* generation_buffer, float max_room_size_factor) {
     coordinate initial_point;
 
     do {
-        initial_point = selectable_space->coordinates[rand() % selectable_space->size];
+        initial_point = generation_buffer->coordinates[rand() % generation_buffer->size];
     } while ( (initial_point.y < 1) || ((map->height - initial_point.y) <= 1) ||
                ((map->width - initial_point.x) <= 1) || (initial_point.x < 1) );
 
@@ -193,20 +174,22 @@ void generate_elliptic_room(map_t* map, listing_t* selectable_space, listing_t* 
     int squarew = width*width;
     int squareh = height*height;
 
+    memset(generation_buffer->coordinates, 0, generation_buffer->size * sizeof(coordinate));
+
     int i = 0;
     for ( int y = -height; y <= height; y++ ) {
         for ( int x = -width; x <= width; x++ ) {
             if ( (x * x * squareh + (y * y) * squarew) <= (squareh * squarew) ) {
-                room_buffer->coordinates[i] = (coordinate) { .x = initial_point.x + x, .y = initial_point.y + y };
+                generation_buffer->coordinates[i] = (coordinate) { .x = initial_point.x + x, .y = initial_point.y + y };
                 i++;
             }
         }
     }
 
-    room_buffer->size = i;
+    generation_buffer->size = i;
 }
 
 /* Return a randomly-chosen element from the rooms_generators array */
-void ( *get_room_generator() ) (map_t*, listing_t*, listing_t*, float) {
+void ( *get_room_generator() ) (map_t*, listing_t*, float) {
     return rooms_generators[randrange(ARR_SIZE(rooms_generators), 0)];
 }
