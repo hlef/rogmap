@@ -32,7 +32,7 @@ int fill_map(map_t* map_buffer, float min_filling, float max_room_size);
 
 int insert_room(map_t* map, listing_t* room);
 
-int is_suitable_initial_point(map_t* map, coordinate initial_point, int dir_right, int dir_up);
+int is_suitable_initial_point(map_t* map, coordinate initial_point);
 
 int randrange(int max, int min);
 

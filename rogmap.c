@@ -61,20 +61,12 @@ int insert_room(map_t* map, listing_t* room) {
     return inserted;
 }
 
-int is_suitable_initial_point(map_t* map, coordinate initial_point, int dir_right, int dir_up) {
-    int valid_height;
-
-    if (dir_up) {
-        valid_height = initial_point.y > 2;
-    } else {
-        valid_height = map->height - initial_point.y > 2;
+int is_suitable_initial_point(map_t* map, coordinate initial_point) {
+    if((initial_point.y < 1) || ((map->height - initial_point.y) <= 1) ||
+       ((map->width - initial_point.x) <= 1) || (initial_point.x < 1)) {
+        return 0;
     }
-
-    if (dir_right) {
-        return map->width - initial_point.x > 2 && valid_height;
-    } else {
-        return initial_point.x > 2 && valid_height;
-    }
+    return 1;
 }
 
 /* Return pseudo random number in range [min, max). If min == max, return max.
@@ -104,42 +96,27 @@ int randrange(int max, int min) {
 void generate_rectangular_room(map_t* map, listing_t* generation_buffer, float max_room_size_factor) {
     coordinate initial_point;
 
-    // dir_right = 1 => build in right direction, dir_up = 1 => build in top direction
-    int dir_right, dir_up;
-
     do {
-        dir_right = randrange(2, 0);
-        dir_up = randrange(2, 0);
         initial_point = generation_buffer->coordinates[rand() % generation_buffer->size];
-    } while ( !is_suitable_initial_point(map, initial_point, dir_right, dir_up) );
+    } while ( !is_suitable_initial_point(map, initial_point) );
 
-    int width, height;
+    int max_height = MIN(map->height - initial_point.y, initial_point.y);
+    max_height = MIN(max_height, map->height * max_room_size_factor * 0.5f);
 
-    if (dir_up) {
-        height = randrange(MIN(map->height * max_room_size_factor, initial_point.y), 2);
-    } else {
-        height = randrange(MIN(map->height * max_room_size_factor, map->height - initial_point.y), 2);
-    }
+    int max_width = MIN(map->width - initial_point.x, initial_point.x);
+    max_width = MIN(max_width, map->width * max_room_size_factor * 0.5f);
 
-    if (dir_right) {
-        width = randrange(MIN(map->width * max_room_size_factor, map->width - initial_point.x), 2);
-    } else {
-        width = randrange(MIN(map->width * max_room_size_factor, initial_point.x), 2);
-    }
+    int height = randrange(max_height, 1);
+    int width = randrange(max_width, 1);
 
     memset(generation_buffer->coordinates, 0, generation_buffer->size * sizeof(coordinate));
 
-    int x, y = initial_point.y, i = 0;
-    for ( int h = 0; h < height; h++ ) {
-        x = initial_point.x;
-
-        for ( int w = 0; w < width; w++ ) {
-            generation_buffer->coordinates[i] = (coordinate) { .x = x, .y = y };
-            dir_right ? x++ : x--;
+    int i = 0;
+    for ( int y = -height; y <= height; y++ ) {
+        for ( int x = -width; x <= width; x++ ) {
+            generation_buffer->coordinates[i] = (coordinate) { .x = initial_point.x + x, .y = initial_point.y + y };
             i++;
         }
-
-        dir_up ? y-- : y++;
     }
 
     generation_buffer->size = i;
@@ -153,8 +130,7 @@ void generate_elliptic_room(map_t* map, listing_t* generation_buffer, float max_
 
     do {
         initial_point = generation_buffer->coordinates[rand() % generation_buffer->size];
-    } while ( (initial_point.y < 1) || ((map->height - initial_point.y) <= 1) ||
-               ((map->width - initial_point.x) <= 1) || (initial_point.x < 1) );
+    } while ( !is_suitable_initial_point(map, initial_point) );
 
     int max_height = MIN(map->height - initial_point.y, initial_point.y);
     max_height = MIN(max_height, map->height * max_room_size_factor * 0.5f);
