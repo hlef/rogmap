@@ -37,4 +37,6 @@ int generate_rectangular_room(map_t* map, coordinate* point, float max_room_size
 
 int generate_elliptic_room(map_t* map, coordinate* point, float max_room_size_factor);
 
+void compute_room_dimensions(map_t* map, coordinate* point, int *height, int *width, float max_room_size_factor);
+
 #endif

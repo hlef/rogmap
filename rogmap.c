@@ -21,7 +21,15 @@ int fill_map(map_t* map, float min_filling, float max_room_size) {
     memset(map->elements, CHAR_EMPTY, map_size * sizeof(char));
 
     coordinate* point = malloc(sizeof(coordinate));
-    *point = (coordinate) { .x = randrange(map->width, 1), .y = randrange(map->height, 1)};
+
+    if(point == NULL) {
+        return -1;
+    }
+
+    // Choose initial point at random, make sure it fulfills is_suitable_initial_point
+    do {
+        *point = (coordinate) { .x = randrange(map->width, 0), .y = randrange(map->height, 0)};
+    } while (!is_suitable_initial_point(map, *point));
 
     // Generation loop
     int i = 0;
@@ -71,18 +79,22 @@ int randrange(int max, int min) {
     return (x / bin_size) + min;
 }
 
-/* Generate a rectangular room in passed map with at least one point in passed
-   generation_buffer array. Write the coordinates constituing the generated
-   room in generation_buffer. */
-int generate_rectangular_room(map_t* map, coordinate* point, float max_room_size_factor) {
+void compute_room_dimensions(map_t* map, coordinate* point, int *height, int *width, float max_room_size_factor) {
     int max_height = MIN(map->height - point->y, point->y);
     max_height = MIN(max_height, map->height * max_room_size_factor * 0.5f);
 
     int max_width = MIN(map->width - point->x, point->x);
     max_width = MIN(max_width, map->width * max_room_size_factor * 0.5f);
 
-    int height = randrange(max_height, 1);
-    int width = randrange(max_width, 1);
+    *height = randrange(max_height, 1);
+    *width = randrange(max_width, 1);
+}
+
+/* Generate a rectangular room in passed map around passed point. Return the
+   number of points newly marked in the map. */
+int generate_rectangular_room(map_t* map, coordinate* point, float max_room_size_factor) {
+    int height, width;
+    compute_room_dimensions(map, point, &height, &width, max_room_size_factor);
 
     // Update map & select next starting point using reservoir sampling
     coordinate current_replacement;
@@ -101,22 +113,14 @@ int generate_rectangular_room(map_t* map, coordinate* point, float max_room_size
     }
 
     *point = current_replacement;
-
     return i;
 }
 
-/* Generate a elliptic room in passed map with at least one point in passed
-   generation_buffer array. Write the coordinates constituing the generated
-   room in generation_buffer. */
+/* Generate an elliptic room in passed map around passed point. Return the
+   number of points newly marked in the map. */
 int generate_elliptic_room(map_t* map, coordinate* point, float max_room_size_factor) {
-    int max_height = MIN(map->height - point->y, point->y);
-    max_height = MIN(max_height, map->height * max_room_size_factor * 0.5f);
-
-    int max_width = MIN(map->width - point->x, point->x);
-    max_width = MIN(max_width, map->width * max_room_size_factor * 0.5f);
-
-    int height = randrange(max_height, 1);
-    int width = randrange(max_width, 1);
+    int height, width;
+    compute_room_dimensions(map, point, &height, &width, max_room_size_factor);
 
     int squarew = width*width;
     int squareh = height*height;
@@ -140,7 +144,6 @@ int generate_elliptic_room(map_t* map, coordinate* point, float max_room_size_fa
     }
 
     *point = current_replacement;
-
     return i;
 }
 
