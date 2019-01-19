@@ -85,7 +85,8 @@ void compute_room_dimensions(map_t* map, coordinate* point, int *height, int *wi
 }
 
 /* Generate a rectangular room in passed map around passed point. Return the
-   number of points newly marked in the map. */
+   number of points newly marked in the map. Select a point in generated room
+   and update point. */
 int generate_rectangular_room(map_t* map, coordinate* point, float max_room_size_factor) {
     int height, width;
     compute_room_dimensions(map, point, &height, &width, max_room_size_factor);
@@ -110,8 +111,9 @@ int generate_rectangular_room(map_t* map, coordinate* point, float max_room_size
     return i;
 }
 
-/* Generate an elliptic room in passed map around passed point. Return the
-   number of points newly marked in the map. */
+/* Generate a elliptic room in passed map around passed point. Return the
+   number of points newly marked in the map. Select a point in generated room
+   and update point. */
 int generate_elliptic_room(map_t* map, coordinate* point, float max_room_size_factor) {
     int height, width;
     compute_room_dimensions(map, point, &height, &width, max_room_size_factor);
